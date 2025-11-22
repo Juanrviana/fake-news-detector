@@ -9,8 +9,10 @@ nltk.data.path.append(r"C:\Users\Juan\AppData\Roaming\nltk_data")
 # Baixar os recursos necessários
 nltk.download('stopwords', quiet=True)
 nltk.download('punkt', quiet=True)
+nltk.download('punkt_tab', quiet=True)
 nltk.download('wordnet', quiet=True)
 
+# Inicialização
 lemmatizer = WordNetLemmatizer()
 stop_words = set(stopwords.words('english'))
 
@@ -31,7 +33,7 @@ def preprocess_text(text):
     tokens = [word for word in tokens if word.isalpha() and word not in stop_words]
 
     # 6. Lemmatização
-    lemmatized = [lemmatizer.lemmatize(word) for word in tokens]
+    tokens = [lemmatizer.lemmatize(word) for word in tokens]
 
     # Retorna texto processado
-    return ' '.join(lemmatized)
+    return ' '.join(tokens)
