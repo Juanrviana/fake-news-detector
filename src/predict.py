@@ -1,31 +1,48 @@
-import joblib
 import os
-import sys
+import joblib
+# Importa o mesmo pré-processamento que usamos no treino
+from preprocess import preprocess_text 
 
-# Ajusta caminho raiz
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-sys.path.append(BASE_DIR)
-
-from src.preprocess import preprocess_text
-
-# Carrega modelo e vetorizador
-model = joblib.load(os.path.join(BASE_DIR, "models/fake_news_model.pkl"))
-vectorizer = joblib.load(os.path.join(BASE_DIR, "models/vectorizer.pkl"))
-
-def prever_texto(texto: str):
-    # 1. Pré-processa o texto
-    texto_processado = preprocess_text(texto)
-
-    # 2. Vetoriza
-    texto_vetorizado = vectorizer.transform([texto_processado])
-
-    # 3. Faz a previsão
-    pred = model.predict(texto_vetorizado)
-
-    # 4. Retorna resultado
-    return "Fake" if pred[0] == 0 else "Real"
+def predict_news(text):
+    # 1. Carregar o vetorizador e o modelo salvos
+    vectorizer_path = os.path.join("models", "vectorizer.pkl")
+    model_path = os.path.join("models", "fake_news_model.pkl")
+    
+    if not os.path.exists(vectorizer_path) or not os.path.exists(model_path):
+        raise FileNotFoundError("Modelo ou Vetorizador não encontrados na pasta 'models'. Rode o train.py primeiro.")
+        
+    vectorizer = joblib.load(vectorizer_path)
+    model = joblib.load(model_path)
+    
+    # 2. Aplicar a limpeza no texto inserido
+    text_cleaned = preprocess_text(text)
+    
+    # 3. Vetorizar o texto (transformar em números)
+    text_vec = vectorizer.transform([text_cleaned])
+    
+    # 4. Fazer a previsão e calcular a probabilidade
+    prediction = model.predict(text_vec)[0]
+    probabilities = model.predict_proba(text_vec)[0]
+    
+    # 5. Retornar os resultados formatados
+    resultado = "FAKE NEWS" if prediction == 1 else "NOTÍCIA VERDADEIRA"
+    confianca = probabilities[prediction] * 100
+    
+    return resultado, confianca
 
 if __name__ == "__main__":
-    entrada = input("Digite a notícia para classificar: ")
-    resultado = prever_texto(entrada)
-    print(f"Classificação: {resultado}")
+    print("=== DETECTOR DE FAKE NEWS PRONTO ===")
+    print("Digite a notícia abaixo para analisar (ou 'sair' para encerrar):")
+    
+    while True:
+        noticia = input("\nInsira o texto da notícia: ")
+        if noticia.lower() == 'sair':
+            break
+            
+        if not noticia.strip():
+            print("Por favor, digite algum texto.")
+            continue
+            
+        resultado, confianca = predict_news(noticia)
+        print(f"\nResultado: O modelo identificou como [{resultado}]")
+        print(f"Confiança da IA: {confianca:.2f}%")

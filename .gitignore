@@ -2,3 +2,9 @@ venv/
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
+
+# Ignorar arquivos de dados pesados
+data/raw/*.csv
+
+# Ignorar os modelos treinados salvos (artefatos)
+models/*.pkl
